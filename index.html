@@ -72,12 +72,19 @@
             return;
         }
 
-        const sasUrl = "https://clouddevstoragecung123.blob.core.windows.net/?sv=2025-11-05&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2026-04-21T11:55:54Z&st=2026-04-16T03:40:54Z&spr=https&sig=T8GR8YZD%2FOp5Szm4ryxeyUMtxhv6%2FvaM2VTGQNbFyFs%3D";
+        const sasUrl = "https://clouddevstoragecung123.blob.core.windows.net/uploads?sv=2025-11-05&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2026-04-21T11:55:54Z&st=2026-04-16T03:40:54Z&spr=https&sig=T8GR8YZD%2FOp5Szm4ryxeyUMtxhv6%2FvaM2VTGQNbFyFs%3D";
 
-        const blobUrl = sasUrl.split("?")[0] + "/" + file.name + sasUrl.substring(sasUrl.indexOf("?"));
+        const baseUrl = sasUrl.split("?")[0];
+        const sasToken = sasUrl.split("?")[1];
+
+        const fileName = encodeURIComponent(file.name);
+
+        const uploadUrl = `${baseUrl}/${fileName}?${sasToken}`;
+
+        console.log("Uploading to:", uploadUrl);
 
         try {
-            const response = await fetch(blobUrl, {
+            const response = await fetch(uploadUrl, {
                 method: "PUT",
                 headers: {
                     "x-ms-blob-type": "BlockBlob",
@@ -87,19 +94,20 @@
             });
 
             if (response.ok) {
-                console.log("Upload success:", blobUrl);
+                const fileUrl = `${baseUrl}/${fileName}`;
+
                 document.getElementById("uploadStatus").innerHTML =
-                    `Upload successful! <br><a href="${blobUrl}" target="_blank">${blobUrl}</a>`;
+                    `Upload successful! <br><a href="${fileUrl}" target="_blank">${fileUrl}</a>`;
+
+                console.log("SUCCESS:", fileUrl);
             } else {
-                console.error("Upload failed:", response.statusText);
-                document.getElementById("uploadStatus").innerText =
-                    "Upload failed: " + response.statusText;
+                console.log("FAILED:", response.status, response.statusText);
+                alert("Upload failed: " + response.statusText);
             }
 
         } catch (err) {
             console.error(err);
-            document.getElementById("uploadStatus").innerText =
-                "Error uploading file";
+            alert("Error uploading file");
         }
     }
 </script>
